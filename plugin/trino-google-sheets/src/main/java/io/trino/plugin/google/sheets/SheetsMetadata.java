@@ -88,6 +88,24 @@ public class SheetsMetadata
     }
 
     @Override
+    public List<ColumnHandle> getColumns(ConnectorSession session, ConnectorTableHandle tableHandle)
+    {
+        SheetsTableHandle sheetsTableHandle = (SheetsTableHandle) tableHandle;
+        Optional<SheetsTable> table = sheetsClient.getTable(sheetsTableHandle.getTableName());
+        if (table.isEmpty()) {
+            throw new TableNotFoundException(sheetsTableHandle.toSchemaTableName());
+        }
+
+        ImmutableList.Builder<ColumnHandle> columnHandles = ImmutableList.builder();
+        int index = 0;
+        for (ColumnMetadata column : table.get().getColumnsMetadata()) {
+            columnHandles.add(new SheetsColumnHandle(column.getName(), column.getType(), index));
+            index++;
+        }
+        return columnHandles.build();
+    }
+
+    @Override
     public Map<String, ColumnHandle> getColumnHandles(ConnectorSession session, ConnectorTableHandle tableHandle)
     {
         SheetsTableHandle sheetsTableHandle = (SheetsTableHandle) tableHandle;

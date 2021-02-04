@@ -156,6 +156,16 @@ public class PinotMetadata
     }
 
     @Override
+    public List<ColumnHandle> getColumns(ConnectorSession session, ConnectorTableHandle tableHandle)
+    {
+        PinotTableHandle pinotTableHandle = (PinotTableHandle) tableHandle;
+        if (pinotTableHandle.getQuery().isPresent()) {
+            return ImmutableList.copyOf(getDynamicTableColumnHandles(pinotTableHandle).values());
+        }
+        return ImmutableList.copyOf(getPinotColumnHandles(pinotTableHandle.getTableName()).values());
+    }
+
+    @Override
     public Map<String, ColumnHandle> getColumnHandles(ConnectorSession session, ConnectorTableHandle tableHandle)
     {
         PinotTableHandle pinotTableHandle = (PinotTableHandle) tableHandle;

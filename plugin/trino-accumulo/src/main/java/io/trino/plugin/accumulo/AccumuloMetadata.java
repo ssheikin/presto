@@ -262,6 +262,19 @@ public class AccumuloMetadata
     }
 
     @Override
+    public List<ColumnHandle> getColumns(ConnectorSession session, ConnectorTableHandle tableHandle)
+    {
+        AccumuloTableHandle handle = (AccumuloTableHandle) tableHandle;
+
+        AccumuloTable table = client.getTable(handle.toSchemaTableName());
+        if (table == null) {
+            throw new TableNotFoundException(handle.toSchemaTableName());
+        }
+
+        return ImmutableList.copyOf(table.getColumns());
+    }
+
+    @Override
     public Map<String, ColumnHandle> getColumnHandles(ConnectorSession session, ConnectorTableHandle tableHandle)
     {
         AccumuloTableHandle handle = (AccumuloTableHandle) tableHandle;

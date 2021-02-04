@@ -135,6 +135,49 @@ public class RedisMetadata
     }
 
     @Override
+    public List<ColumnHandle> getColumns(ConnectorSession session, ConnectorTableHandle tableHandle)
+    {
+        RedisTableHandle redisTableHandle = convertTableHandle(tableHandle);
+
+        RedisTableDescription redisTableDescription = getDefinedTables().get(redisTableHandle.toSchemaTableName());
+        if (redisTableDescription == null) {
+            throw new TableNotFoundException(redisTableHandle.toSchemaTableName());
+        }
+
+        ImmutableList.Builder<ColumnHandle> columnHandles = ImmutableList.builder();
+
+        int index = 0;
+        RedisTableFieldGroup key = redisTableDescription.getKey();
+        if (key != null) {
+            List<RedisTableFieldDescription> fields = key.getFields();
+            if (fields != null) {
+                for (RedisTableFieldDescription field : fields) {
+                    columnHandles.add(field.getColumnHandle(true, index));
+                    index++;
+                }
+            }
+        }
+
+        RedisTableFieldGroup value = redisTableDescription.getValue();
+        if (value != null) {
+            List<RedisTableFieldDescription> fields = value.getFields();
+            if (fields != null) {
+                for (RedisTableFieldDescription field : fields) {
+                    columnHandles.add(field.getColumnHandle(false, index));
+                    index++;
+                }
+            }
+        }
+
+        for (RedisInternalFieldDescription field : RedisInternalFieldDescription.values()) {
+            columnHandles.add(field.getColumnHandle(index, hideInternalColumns));
+            index++;
+        }
+
+        return columnHandles.build();
+    }
+
+    @Override
     public Map<String, ColumnHandle> getColumnHandles(ConnectorSession session, ConnectorTableHandle tableHandle)
     {
         RedisTableHandle redisTableHandle = convertTableHandle(tableHandle);

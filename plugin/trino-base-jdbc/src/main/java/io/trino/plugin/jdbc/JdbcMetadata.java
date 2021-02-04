@@ -61,6 +61,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import static com.google.common.base.Functions.identity;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Verify.verify;
+import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import static io.trino.plugin.jdbc.JdbcMetadataSessionProperties.isAggregationPushdownEnabled;
@@ -92,7 +93,7 @@ public class JdbcMetadata
     @Override
     public List<String> listSchemaNames(ConnectorSession session)
     {
-        return ImmutableList.copyOf(jdbcClient.getSchemaNames(session));
+        return copyOf(jdbcClient.getSchemaNames(session));
     }
 
     @Override
@@ -353,6 +354,12 @@ public class JdbcMetadata
     public List<SchemaTableName> listTables(ConnectorSession session, Optional<String> schemaName)
     {
         return jdbcClient.getTableNames(session, schemaName);
+    }
+
+    @Override
+    public List<ColumnHandle> getColumns(ConnectorSession session, ConnectorTableHandle tableHandle)
+    {
+        return copyOf(jdbcClient.getColumns(session, (JdbcTableHandle) tableHandle));
     }
 
     @Override

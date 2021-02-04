@@ -171,6 +171,23 @@ public class KuduMetadata
     }
 
     @Override
+    public List<ColumnHandle> getColumns(ConnectorSession session, ConnectorTableHandle tableHandle)
+    {
+        Schema schema = clientSession.getTableSchema((KuduTableHandle) tableHandle);
+
+        ImmutableList.Builder<ColumnHandle> columnHandles = ImmutableList.builder();
+        for (int ordinal = 0; ordinal < schema.getColumnCount(); ordinal++) {
+            ColumnSchema col = schema.getColumnByIndex(ordinal);
+            String name = col.getName();
+            Type type = TypeHelper.fromKuduColumn(col);
+            KuduColumnHandle columnHandle = new KuduColumnHandle(name, ordinal, type);
+            columnHandles.add(columnHandle);
+        }
+
+        return columnHandles.build();
+    }
+
+    @Override
     public Map<String, ColumnHandle> getColumnHandles(ConnectorSession session, ConnectorTableHandle connectorTableHandle)
     {
         KuduTableHandle tableHandle = (KuduTableHandle) connectorTableHandle;

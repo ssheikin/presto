@@ -112,6 +112,37 @@ public class KinesisMetadata
     }
 
     @Override
+    public List<ColumnHandle> getColumns(ConnectorSession session, ConnectorTableHandle tableHandle)
+    {
+        KinesisTableHandle kinesisTableHandle = (KinesisTableHandle) tableHandle;
+
+        KinesisStreamDescription kinesisStreamDescription = tableDescriptionSupplier.get().get(kinesisTableHandle.toSchemaTableName());
+        if (kinesisStreamDescription == null) {
+            throw new TableNotFoundException(kinesisTableHandle.toSchemaTableName());
+        }
+
+        ImmutableList.Builder<ColumnHandle> columnHandles = ImmutableList.builder();
+
+        int index = 0;
+        // Note: partition key and related fields are handled by internalFieldDescriptions below
+        KinesisStreamFieldGroup message = kinesisStreamDescription.getMessage();
+        if (message != null) {
+            List<KinesisStreamFieldDescription> fields = message.getFields();
+            if (fields != null) {
+                for (KinesisStreamFieldDescription kinesisStreamFieldDescription : fields) {
+                    columnHandles.add(kinesisStreamFieldDescription.getColumnHandle(index++));
+                }
+            }
+        }
+
+        for (KinesisInternalFieldDescription kinesisInternalFieldDescription : internalFieldDescriptions) {
+            columnHandles.add(kinesisInternalFieldDescription.getColumnHandle(index++, isHideInternalColumns));
+        }
+
+        return columnHandles.build();
+    }
+
+    @Override
     public Map<String, ColumnHandle> getColumnHandles(ConnectorSession connectorSession, ConnectorTableHandle tableHandle)
     {
         KinesisTableHandle kinesisTableHandle = (KinesisTableHandle) tableHandle;

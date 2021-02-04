@@ -254,6 +254,26 @@ public class RaptorMetadata
     }
 
     @Override
+    public List<ColumnHandle> getColumns(ConnectorSession session, ConnectorTableHandle tableHandle)
+    {
+        RaptorTableHandle raptorTableHandle = (RaptorTableHandle) tableHandle;
+        ImmutableList.Builder<ColumnHandle> builder = ImmutableList.builder();
+        for (TableColumn tableColumn : dao.listTableColumns(raptorTableHandle.getTableId())) {
+            builder.add(getRaptorColumnHandle(tableColumn));
+        }
+
+        RaptorColumnHandle uuidColumn = shardUuidColumnHandle();
+        builder.add(uuidColumn);
+
+        if (raptorTableHandle.isBucketed()) {
+            RaptorColumnHandle bucketNumberColumn = bucketNumberColumnHandle();
+            builder.add(bucketNumberColumn);
+        }
+
+        return builder.build();
+    }
+
+    @Override
     public Map<String, ColumnHandle> getColumnHandles(ConnectorSession session, ConnectorTableHandle tableHandle)
     {
         RaptorTableHandle raptorTableHandle = (RaptorTableHandle) tableHandle;

@@ -81,6 +81,25 @@ public class LocalFileMetadata
     }
 
     @Override
+    public List<ColumnHandle> getColumns(ConnectorSession session, ConnectorTableHandle tableHandle)
+    {
+        ImmutableList.Builder<ColumnHandle> columnHandles = ImmutableList.builder();
+        int index = 0;
+        for (ColumnMetadata column : localFileTables.getColumns((LocalFileTableHandle) tableHandle)) {
+            int ordinalPosition;
+            if (column.getName().equals(SERVER_ADDRESS_COLUMN_NAME)) {
+                ordinalPosition = SERVER_ADDRESS_ORDINAL_POSITION;
+            }
+            else {
+                ordinalPosition = index;
+                index++;
+            }
+            columnHandles.add(new LocalFileColumnHandle(column.getName(), column.getType(), ordinalPosition));
+        }
+        return columnHandles.build();
+    }
+
+    @Override
     public Map<String, ColumnHandle> getColumnHandles(ConnectorSession session, ConnectorTableHandle table)
     {
         LocalFileTableHandle tableHandle = (LocalFileTableHandle) table;

@@ -101,6 +101,16 @@ public class SystemTablesMetadata
     }
 
     @Override
+    public List<ColumnHandle> getColumns(ConnectorSession session, ConnectorTableHandle tableHandle)
+    {
+        ConnectorTableMetadata tableMetadata = checkAndGetTable(session, tableHandle).getTableMetadata();
+        return tableMetadata.getColumns().stream()
+                .map(ColumnMetadata::getName)
+                .map(SystemColumnHandle::new)
+                .collect(toImmutableList());
+    }
+
+    @Override
     public Map<String, ColumnHandle> getColumnHandles(ConnectorSession session, ConnectorTableHandle tableHandle)
     {
         ConnectorTableMetadata tableMetadata = checkAndGetTable(session, tableHandle).getTableMetadata();

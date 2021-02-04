@@ -45,6 +45,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static io.trino.spi.type.CharType.createCharType;
 import static io.trino.spi.type.DecimalType.createDecimalType;
 import static io.trino.spi.type.VarcharType.createVarcharType;
@@ -162,6 +163,14 @@ public class TpcdsMetadata
         String schemaName = scaleFactorSchemaName(tpcdsTableHandle.getScaleFactor());
 
         return tpcdsTableStatisticsFactory.create(schemaName, table, getColumnHandles(session, tableHandle));
+    }
+
+    @Override
+    public List<ColumnHandle> getColumns(ConnectorSession session, ConnectorTableHandle tableHandle)
+    {
+        return getTableMetadata(session, tableHandle).getColumns().stream()
+                .map(columnMetadata -> new TpcdsColumnHandle(columnMetadata.getName(), columnMetadata.getType()))
+                .collect(toImmutableList());
     }
 
     @Override

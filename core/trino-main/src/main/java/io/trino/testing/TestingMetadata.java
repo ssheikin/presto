@@ -101,6 +101,18 @@ public class TestingMetadata
     }
 
     @Override
+    public List<ColumnHandle> getColumns(ConnectorSession session, ConnectorTableHandle tableHandle)
+    {
+        ImmutableList.Builder<ColumnHandle> builder = ImmutableList.builder();
+        int index = 0;
+        for (ColumnMetadata columnMetadata : getTableMetadata(session, tableHandle).getColumns()) {
+            builder.add(new TestingColumnHandle(columnMetadata.getName(), index, columnMetadata.getType()));
+            index++;
+        }
+        return builder.build();
+    }
+
+    @Override
     public Map<String, ColumnHandle> getColumnHandles(ConnectorSession session, ConnectorTableHandle tableHandle)
     {
         ImmutableMap.Builder<String, ColumnHandle> builder = ImmutableMap.builder();

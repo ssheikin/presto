@@ -111,6 +111,13 @@ public class MongoMetadata
     }
 
     @Override
+    public List<ColumnHandle> getColumns(ConnectorSession session, ConnectorTableHandle tableHandle)
+    {
+        MongoTableHandle table = (MongoTableHandle) tableHandle;
+        return ImmutableList.copyOf(mongoSession.getTable(table.getSchemaTableName()).getColumns());
+    }
+
+    @Override
     public Map<String, ColumnHandle> getColumnHandles(ConnectorSession session, ConnectorTableHandle tableHandle)
     {
         MongoTableHandle table = (MongoTableHandle) tableHandle;

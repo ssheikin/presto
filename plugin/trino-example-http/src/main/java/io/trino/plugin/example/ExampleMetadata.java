@@ -95,6 +95,25 @@ public class ExampleMetadata
     }
 
     @Override
+    public List<ColumnHandle> getColumns(ConnectorSession session, ConnectorTableHandle tableHandle)
+    {
+        ExampleTableHandle exampleTableHandle = (ExampleTableHandle) tableHandle;
+
+        ExampleTable table = exampleClient.getTable(exampleTableHandle.getSchemaName(), exampleTableHandle.getTableName());
+        if (table == null) {
+            throw new TableNotFoundException(exampleTableHandle.toSchemaTableName());
+        }
+
+        ImmutableList.Builder<ColumnHandle> columnHandles = ImmutableList.builder();
+        int index = 0;
+        for (ColumnMetadata column : table.getColumnsMetadata()) {
+            columnHandles.add(new ExampleColumnHandle(column.getName(), column.getType(), index));
+            index++;
+        }
+        return columnHandles.build();
+    }
+
+    @Override
     public Map<String, ColumnHandle> getColumnHandles(ConnectorSession session, ConnectorTableHandle tableHandle)
     {
         ExampleTableHandle exampleTableHandle = (ExampleTableHandle) tableHandle;

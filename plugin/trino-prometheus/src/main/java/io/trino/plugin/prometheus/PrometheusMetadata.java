@@ -95,6 +95,25 @@ public class PrometheusMetadata
     }
 
     @Override
+    public List<ColumnHandle> getColumns(ConnectorSession session, ConnectorTableHandle tableHandle)
+    {
+        PrometheusTableHandle prometheusTableHandle = (PrometheusTableHandle) tableHandle;
+
+        PrometheusTable table = prometheusClient.getTable(prometheusTableHandle.getSchemaName(), prometheusTableHandle.getTableName());
+        if (table == null) {
+            throw new TableNotFoundException(prometheusTableHandle.toSchemaTableName());
+        }
+
+        ImmutableList.Builder<ColumnHandle> columnHandles = ImmutableList.builder();
+        int index = 0;
+        for (ColumnMetadata column : table.getColumnsMetadata()) {
+            columnHandles.add(new PrometheusColumnHandle(column.getName(), column.getType(), index));
+            index++;
+        }
+        return columnHandles.build();
+    }
+
+    @Override
     public Map<String, ColumnHandle> getColumnHandles(ConnectorSession session, ConnectorTableHandle tableHandle)
     {
         PrometheusTableHandle prometheusTableHandle = (PrometheusTableHandle) tableHandle;

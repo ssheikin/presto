@@ -122,6 +122,41 @@ public class KafkaMetadata
     }
 
     @Override
+    public List<ColumnHandle> getColumns(ConnectorSession session, ConnectorTableHandle tableHandle)
+    {
+        KafkaTableHandle kafkaTableHandle = convertTableHandle(tableHandle);
+        KafkaTopicDescription kafkaTopicDescription = getRequiredTopicDescription(session, kafkaTableHandle.toSchemaTableName());
+
+        ImmutableList.Builder<ColumnHandle> columnHandles = ImmutableList.builder();
+
+        AtomicInteger index = new AtomicInteger(0);
+
+        kafkaTopicDescription.getKey().ifPresent(key -> {
+            List<KafkaTopicFieldDescription> fields = key.getFields();
+            if (fields != null) {
+                for (KafkaTopicFieldDescription kafkaTopicFieldDescription : fields) {
+                    columnHandles.add(kafkaTopicFieldDescription.getColumnHandle(true, index.getAndIncrement()));
+                }
+            }
+        });
+
+        kafkaTopicDescription.getMessage().ifPresent(message -> {
+            List<KafkaTopicFieldDescription> fields = message.getFields();
+            if (fields != null) {
+                for (KafkaTopicFieldDescription kafkaTopicFieldDescription : fields) {
+                    columnHandles.add(kafkaTopicFieldDescription.getColumnHandle(false, index.getAndIncrement()));
+                }
+            }
+        });
+
+        for (KafkaInternalFieldManager.InternalField kafkaInternalField : kafkaInternalFieldManager.getInternalFields().values()) {
+            columnHandles.add(kafkaInternalField.getColumnHandle(index.getAndIncrement(), hideInternalColumns));
+        }
+
+        return columnHandles.build();
+    }
+
+    @Override
     public Map<String, ColumnHandle> getColumnHandles(ConnectorSession session, ConnectorTableHandle tableHandle)
     {
         KafkaTableHandle kafkaTableHandle = convertTableHandle(tableHandle);

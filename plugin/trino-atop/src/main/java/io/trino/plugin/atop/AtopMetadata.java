@@ -39,6 +39,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static io.trino.plugin.atop.AtopTable.AtopColumn.END_TIME;
 import static io.trino.plugin.atop.AtopTable.AtopColumn.START_TIME;
 import static java.util.Locale.ENGLISH;
@@ -109,6 +110,17 @@ public class AtopMetadata
         return Stream.of(AtopTable.values())
                 .map(table -> new SchemaTableName(schemaName.get(), table.getName()))
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<ColumnHandle> getColumns(ConnectorSession session, ConnectorTableHandle tableHandle)
+    {
+        AtopTableHandle atopTableHandle = (AtopTableHandle) tableHandle;
+        List<AtopColumn> atopColumns = atopTableHandle.getTable().getColumns();
+        return atopColumns.stream()
+                .map(AtopColumn::getName)
+                .map(AtopColumnHandle::new)
+                .collect(toImmutableList());
     }
 
     @Override

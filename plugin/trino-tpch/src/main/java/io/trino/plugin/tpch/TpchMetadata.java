@@ -73,6 +73,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.collect.Maps.asMap;
 import static io.trino.plugin.tpch.util.PredicateUtils.convertToPredicate;
@@ -236,6 +237,14 @@ public class TpchMetadata
 
         SchemaTableName tableName = new SchemaTableName(schemaName, tpchTable.getTableName());
         return new ConnectorTableMetadata(tableName, columns.build());
+    }
+
+    @Override
+    public List<ColumnHandle> getColumns(ConnectorSession session, ConnectorTableHandle tableHandle)
+    {
+        return getTableMetadata(session, tableHandle).getColumns().stream()
+                .map(columnMetadata -> new TpchColumnHandle(columnMetadata.getName(), columnMetadata.getType()))
+                .collect(toImmutableList());
     }
 
     @Override

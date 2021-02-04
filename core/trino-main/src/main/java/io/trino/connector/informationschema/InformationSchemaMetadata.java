@@ -137,6 +137,19 @@ public class InformationSchemaMetadata
     }
 
     @Override
+    public List<ColumnHandle> getColumns(ConnectorSession session, ConnectorTableHandle tableHandle)
+    {
+        InformationSchemaTableHandle informationSchemaTableHandle = (InformationSchemaTableHandle) tableHandle;
+
+        ConnectorTableMetadata tableMetadata = informationSchemaTableHandle.getTable().getTableMetadata();
+
+        return tableMetadata.getColumns().stream()
+                .map(ColumnMetadata::getName)
+                .map(InformationSchemaColumnHandle::new)
+                .collect(toImmutableList());
+    }
+
+    @Override
     public Map<String, ColumnHandle> getColumnHandles(ConnectorSession session, ConnectorTableHandle tableHandle)
     {
         InformationSchemaTableHandle informationSchemaTableHandle = (InformationSchemaTableHandle) tableHandle;

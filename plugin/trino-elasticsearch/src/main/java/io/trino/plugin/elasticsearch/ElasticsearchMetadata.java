@@ -357,6 +357,18 @@ public class ElasticsearchMetadata
     }
 
     @Override
+    public List<ColumnHandle> getColumns(ConnectorSession session, ConnectorTableHandle tableHandle)
+    {
+        ElasticsearchTableHandle table = (ElasticsearchTableHandle) tableHandle;
+
+        if (isPassthroughQuery(table)) {
+            return ImmutableList.copyOf(PASSTHROUGH_QUERY_COLUMNS.values());
+        }
+
+        return ImmutableList.copyOf(makeInternalTableMetadata(tableHandle).getColumnHandles().values());
+    }
+
+    @Override
     public Map<String, ColumnHandle> getColumnHandles(ConnectorSession session, ConnectorTableHandle tableHandle)
     {
         ElasticsearchTableHandle table = (ElasticsearchTableHandle) tableHandle;
